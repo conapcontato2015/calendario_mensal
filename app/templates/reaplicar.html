@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block titulo %}Reaplicar nomes · {{ nome_mes|title }}{% endblock %}
+{% block conteudo %}
+<h1 class="h1">Reaplicar nomes em {{ nome_mes }}</h1>
+<p class="lead">Refaz o mês a partir da lista importada, usando as regras de nomes atuais. Útil depois de editar uma regra.</p>
+
+{% set r = p.resultado %}
+{% if r.pendentes %}
+  <div class="box warn"><h3>{{ r.pendentes }} nome(s) da lista não têm mais regra</h3>
+    <p>Importe o mês de novo pela tela Importar mês para definir esses nomes.</p></div>
+{% endif %}
+{% if manuais %}
+  <div class="box warn"><h3>Este mês tem {{ manuais }} tarefa(s) adicionada(s) à mão</h3>
+    <p>Elas serão descartadas ao reaplicar. Um backup é feito antes e você pode desfazer logo depois.</p></div>
+{% endif %}
+
+<div class="result">
+  <div class="result-h"><h3>{{ mudancas|length }} dia(s) mudam</h3></div>
+  {% for m in mudancas %}
+    <div class="rday diff"><span class="rd">{{ m.data|dm }} {{ DIAS_CURTOS[m.data.weekday()] }}</span>
+      <span class="rt">
+        <span class="lado"><small>Hoje</small>{% for n in m.antes %}<span class="task">{{ n }}</span>{% else %}<span class="muted">—</span>{% endfor %}</span>
+        <span class="lado"><small>Depois</small>{% for n in m.depois %}<span class="task new">{{ n }}</span>{% else %}<span class="muted">—</span>{% endfor %}</span>
+      </span>
+    </div>
+  {% else %}
+    <div class="rday"><span></span><span class="muted">Nada muda: o calendário já está igual às regras atuais.</span></div>
+  {% endfor %}
+</div>
+
+<form method="post" class="confirmbar">
+  <span class="reason">{% if r.pendentes %}Bloqueado: há nomes sem regra.{% elif not mudancas %}Nada para atualizar.{% else %}Pronto para atualizar {{ mudancas|length }} dia(s).{% endif %}</span>
+  <a class="btn" href="{{ url_for('calendario.mes', mes=mk) }}">Voltar</a>
+  <button class="btn primary" type="submit" {% if r.pendentes or not mudancas %}disabled{% endif %}>Reaplicar</button>
+</form>
+{% endblock %}

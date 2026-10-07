@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block titulo %}Importar mês · Calendário de Tarefas{% endblock %}
+{% block conteudo %}
+<h1 class="h1">Importar tarefas</h1>
+<p class="lead">Copie a lista do sistema (nome da tarefa e data) e cole abaixo. A prévia aparece na hora; nada é gravado até você confirmar.</p>
+
+{% if erro %}<div class="box bad"><h3>Não foi possível importar</h3><p>{{ erro }}</p></div>{% endif %}
+
+<form id="form-importar" method="post" action="{{ url_for('importar.confirmar') }}"
+      data-previa="{{ url_for('importar.atualizar_previa') }}">
+  <textarea class="paste" id="texto" name="texto" spellcheck="false" autofocus
+            placeholder="Cole aqui com Ctrl+V&#10;&#10;Provisão PIS/COFINS Mês     06/10/2026&#10;FECHAMENTO ISSQN            07/10/2026"
+            aria-label="Lista de tarefas">{{ texto }}</textarea>
+  <div id="previa">{% include "_previa.html" %}</div>
+</form>
+{% endblock %}

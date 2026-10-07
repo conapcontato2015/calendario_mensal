@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block titulo %}{{ MESES[mes_num-1]|title }} {{ ano }} · Calendário de Tarefas{% endblock %}
+
+{% macro tarefa(t) -%}
+  {%- set grupo = t.originais|length > 1 -%}
+  <span class="task">{{ t.nome }}{% if grupo %}<span class="grp">ⓘ{{ t.originais|length }}</span>{% endif %}<span class="tip">
+    {%- if grupo -%}<b>{{ t.originais|length }} no sistema</b><ul>{% for o in t.originais %}<li>{{ o }}</li>{% endfor %}</ul>
+    {%- elif t.originais -%}<b>Nome no sistema</b>{{ t.originais[0] }}
+    {%- else -%}<b>Adicionada manualmente</b>{%- endif -%}
+  </span></span>
+{%- endmacro %}
+
+{% block conteudo %}
+<div class="calbar">
+  <a class="iconbtn" href="{{ url_for('calendario.mes', mes=anterior) }}" aria-label="Mês anterior">‹</a>
+  <h1 class="month">{{ MESES[mes_num-1] }}<small>{{ ano }}</small></h1>
+  <a class="iconbtn" href="{{ url_for('calendario.mes', mes=proximo) }}" aria-label="Próximo mês">›</a>
+  <a class="btn ghost" href="{{ url_for('calendario.mes') }}">Hoje</a>
+  <span class="spacer"></span>
+  {% if total %}<span class="stat">{{ total }} tarefas no mês</span>{% endif %}
+  {% if pode_reaplicar %}<a class="btn ghost" href="{{ url_for('importar.reaplicar_tela', mk=mk) }}">Reaplicar nomes</a>{% endif %}
+  <button class="btn" type="button" data-imprimir {% if not total %}disabled{% endif %}>Imprimir</button>
+  <a class="btn primary" href="{{ url_for('importar.tela') }}">Importar mês</a>
+</div>
+
+{% if not total %}
+  <div class="empty">
+    <h2>{{ MESES[mes_num-1] }} ainda não tem tarefas</h2>
+    <p>Cole a lista exportada do sistema e o calendário é montado com os nomes simplificados.</p>
+    <a class="btn primary" href="{{ url_for('importar.tela') }}">Importar tarefas de {{ MESES[mes_num-1] }}</a>
+  </div>
+{% else %}
+<div class="sheet">
+  <div class="sheet-title">{{ MESES[mes_num-1] }} {{ ano }}</div>
+  <div class="grid-scroll">
+    <div class="grid {{ 'seg' if semana_comeca == 'segunda' else 'dom' }}">
+      {% for c in cabecalho %}<div class="dow">{{ c }}</div>{% endfor %}
+      {% for semana in grade %}{% for d in semana %}
+        {% if d.fora %}
+          <div class="day out"><div class="dhead"><span class="dnum">{{ d.data.day }}</span></div></div>
+        {% else %}
+          <a class="day{% if d.fim_semana %} wkend{% endif %}{% if d.data == hoje %} today{% endif %}{% if painel and painel.data == d.data %} sel{% endif %}{% if d.tarefas|length > 6 %} cheio{% endif %}"
+             href="{{ url_for('calendario.mes', mes=mk, dia=d.data.isoformat()) }}"
+             aria-label="{{ d.data.day }} de {{ MESES[mes_num-1]|lower }}, {{ d.tarefas|length }} tarefas">
+            <div class="dhead"><span class="dnum">{{ d.data.day }}</span>{% if d.tarefas %}<span class="dcount{% if d.tarefas|length > 5 %} hi{% endif %}">{{ d.tarefas|length }}</span>{% endif %}</div>
+            {% if d.feriado %}<span class="hol">Feriado · {{ d.feriado }}</span>{% endif %}
+            {% for t in d.tarefas %}{{ tarefa(t) }}{% endfor %}
+          </a>
+        {% endif %}
+      {% endfor %}{% endfor %}
+    </div>
+  </div>
+
+  <div class="mlist">
+    {% for semana in grade %}{% for d in semana %}
+      {% if not d.fora and (d.tarefas or d.feriado) %}
+        <a class="mday{% if d.data == hoje %} today{% endif %}" href="{{ url_for('calendario.mes', mes=mk, dia=d.data.isoformat()) }}">
+          <span class="md">{{ DIAS_CURTOS[d.data.weekday()] }}<b>{{ d.data.day }}</b></span>
+          <span class="tasks">{% if d.feriado %}<span class="hol">Feriado · {{ d.feriado }}</span>{% endif %}{% for t in d.tarefas %}{{ tarefa(t) }}{% endfor %}</span>
+        </a>
+      {% endif %}
+    {% endfor %}{% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% if painel %}
+  {% set voltar = url_for('calendario.mes', mes=mk, dia=painel.data.isoformat()) %}
+  <a class="scrim" href="{{ url_for('calendario.mes', mes=mk) }}" aria-label="Fechar painel" data-fechar-painel></a>
+  <aside class="panel" aria-label="Tarefas do dia">
+    <header>
+      <h2>{{ painel.data.day }} de {{ MESES[painel.data.month-1]|lower }}
+        <small>{{ painel.dia_semana }} · {{ painel.tarefas|length }} {{ 'tarefa' if painel.tarefas|length == 1 else 'tarefas' }}{% if painel.feriado %} · {{ painel.feriado }}{% endif %}</small></h2>
+      <a class="iconbtn" href="{{ url_for('calendario.mes', mes=mk) }}" aria-label="Fechar">×</a>
+    </header>
+    <div class="body">
+      {% if not painel.tarefas %}<p class="muted">Nenhuma tarefa neste dia.</p>{% endif %}
+      {% for t in painel.tarefas %}
+        <div class="prow">
+          {% if painel.editar == t.id %}
+            <form class="edit" method="post" action="{{ url_for('calendario.renomear', tarefa_id=t.id) }}">
+              <input type="hidden" name="voltar" value="{{ voltar }}">
+              <input id="ed-{{ t.id }}" name="nome" value="{{ t.nome }}" list="nomes-existentes" aria-label="Novo nome" autofocus required>
+              <button class="mini" type="submit">Salvar</button>
+              <a class="mini" href="{{ voltar }}">Cancelar</a>
+            </form>
+          {% else %}
+            <span class="pn">{{ t.nome }}</span>
+            <span class="acts">
+              <a class="mini" href="{{ url_for('calendario.mes', mes=mk, dia=painel.data.isoformat(), editar=t.id) }}">Renomear</a>
+              <form method="post" action="{{ url_for('calendario.remover', tarefa_id=t.id) }}">
+                <input type="hidden" name="voltar" value="{{ voltar }}">
+                <button class="mini danger" type="submit">Remover</button>
+              </form>
+            </span>
+          {% endif %}
+          <span class="po">{% if t.originais|length > 1 %}{{ t.originais|length }} no sistema: {% elif t.originais %}No sistema: {% else %}Adicionada manualmente{% endif %}{{ t.originais|join(' · ') }}</span>
+        </div>
+      {% endfor %}
+    </div>
+    <form class="add" method="post" action="{{ url_for('calendario.adicionar') }}">
+      <input type="hidden" name="data" value="{{ painel.data.isoformat() }}">
+      <input id="add-nome" name="nome" list="nomes-existentes" placeholder="Adicionar tarefa neste dia" aria-label="Nome da tarefa" required>
+      <button class="btn primary" type="submit">Adicionar</button>
+    </form>
+    <datalist id="nomes-existentes">{% for n in painel.nomes %}<option value="{{ n }}">{% endfor %}</datalist>
+  </aside>
+{% endif %}
+{% endblock %}

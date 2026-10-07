@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block titulo %}Calendário de Tarefas{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}?v={{ versao }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="top">
+  <div class="top-in">
+    <a class="brand" href="{{ url_for('calendario.mes') }}"><i></i>Calendário de Tarefas</a>
+    <nav class="tabs" aria-label="Seções">
+      {% set ep = request.endpoint or '' %}
+      <a href="{{ url_for('calendario.mes') }}" {% if ep.startswith('calendario.') %}aria-current="page"{% endif %}>Calendário</a>
+      <a href="{{ url_for('importar.tela') }}" {% if ep.startswith('importar.') %}aria-current="page"{% endif %}>Importar mês</a>
+      <a href="{{ url_for('nomes.lista') }}" {% if ep.startswith('nomes.') or ep.startswith('config.') %}aria-current="page"{% endif %}>⚙ Configurações</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  {% block conteudo %}{% endblock %}
+</main>
+
+<div class="toasts" id="toasts" aria-live="polite">
+  {% for m in get_flashed_messages() %}
+    {% set item = m if m is mapping else {'msg': m, 'tipo': 'ok'} %}
+    <div class="toast {{ item.tipo }}" data-tempo="{{ 9000 if item.desfazer or item.tipo != 'ok' else 4000 }}">
+      <span>{{ item.msg }}</span>
+      {% if item.desfazer %}
+        <form method="post" action="{{ item.desfazer.url }}">
+          {% for k, v in (item.desfazer.campos or {}).items() %}<input type="hidden" name="{{ k }}" value="{{ v }}">{% endfor %}
+          <input type="hidden" name="voltar" value="{{ item.desfazer.voltar or '' }}">
+          <button type="submit">Desfazer</button>
+        </form>
+      {% endif %}
+      <button type="button" class="x" aria-label="Fechar">×</button>
+    </div>
+  {% endfor %}
+</div>
+<script src="{{ url_for('static', filename='app.js') }}?v={{ versao }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

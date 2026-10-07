@@ -1,0 +1,15 @@
+# Dados locais: nunca vão para o Git
+dados/
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Editor / sistema
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store

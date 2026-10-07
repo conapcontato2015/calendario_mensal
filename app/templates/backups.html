@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block titulo %}Backups · Calendário de Tarefas{% endblock %}
+{% block conteudo %}
+{% include "_subnav.html" %}
+<h1 class="h1">Backups</h1>
+<p class="lead">Uma cópia do banco é feita ao abrir o sistema e antes de cada importação, desfazer ou restauração. Os {{ cfg.backups_manter }} mais recentes ficam guardados.</p>
+
+<div class="row" style="margin-bottom:14px">
+  <form method="post" action="{{ url_for('config.criar') }}"><button class="btn primary" type="submit">Fazer backup agora</button></form>
+  <span class="note">Pasta: <code>{{ cfg.pasta_backup }}</code> · para mudar, edite <code>PASTA_BACKUP</code> no arquivo <code>.env</code>.</span>
+</div>
+
+<div class="tbl-wrap"><table class="rt">
+  <thead><tr><th>Quando</th><th>Motivo</th><th class="num">Tamanho</th><th></th></tr></thead>
+  <tbody>
+  {% for b in itens %}
+    <tr>
+      <td class="num left">{{ b.quando.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+      <td>{{ b.motivo }}</td>
+      <td class="num">{{ b.tamanho_kb }} KB</td>
+      <td class="acts">
+        <a class="mini" href="{{ url_for('config.baixar', nome=b.arquivo.name) }}">Baixar</a>
+        <a class="mini" href="{{ url_for('config.backups', restaurar=b.arquivo.name) }}">Restaurar…</a>
+      </td>
+    </tr>
+    {% if confirmar == b.arquivo.name %}
+      <tr class="confirm-row"><td colspan="4">
+        <form method="post" action="{{ url_for('config.restaurar', nome=b.arquivo.name) }}" class="box warn">
+          <h3>Restaurar o backup de {{ b.quando.strftime('%d/%m/%Y %H:%M') }}?</h3>
+          <p>O calendário e os nomes voltam a ser exatamente como estavam nesse momento. O estado atual é salvo como backup antes, então dá para voltar.</p>
+          <label class="check"><input type="checkbox" name="confirmo" value="1" required> Entendo e quero restaurar</label>
+          <div class="row"><button class="btn primary" type="submit">Restaurar</button>
+            <a class="btn ghost" href="{{ url_for('config.backups') }}">Cancelar</a></div>
+        </form>
+      </td></tr>
+    {% endif %}
+  {% else %}
+    <tr><td colspan="4" class="muted">Nenhum backup ainda.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

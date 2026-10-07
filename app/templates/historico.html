@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block titulo %}Histórico · Calendário de Tarefas{% endblock %}
+{% block conteudo %}
+{% include "_subnav.html" %}
+<h1 class="h1">Histórico de alterações</h1>
+<p class="lead">Tudo o que mudou no sistema, com o endereço do computador que fez a alteração. Mostra as 300 mais recentes.</p>
+<div class="tbl-wrap"><table class="rt">
+  <thead><tr><th>Quando</th><th>O quê</th><th>Detalhe</th><th>Computador</th></tr></thead>
+  <tbody>
+  {% for l in itens %}
+    <tr><td class="num left nowrap">{{ l.quando|dmy }} {{ l.quando[11:16] }}</td><td>{{ l.acao }}</td><td>{{ l.detalhe }}</td><td class="num left">{{ l.ip or '—' }}</td></tr>
+  {% else %}
+    <tr><td colspan="4" class="muted">Nada registrado ainda.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+{% endblock %}

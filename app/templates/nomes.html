@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block titulo %}Nomes · Calendário de Tarefas{% endblock %}
+{% block conteudo %}
+{% include "_subnav.html" %}
+<h1 class="h1">Nomes</h1>
+<p class="lead">Como cada tarefa do sistema aparece no calendário. Nomes novos entram aqui sozinhos quando você os define na importação.</p>
+
+<form class="tester" method="get" action="{{ url_for('nomes.lista') }}">
+  <label for="teste">Testar um nome do sistema</label>
+  <div class="row">
+    <input id="teste" name="teste" value="{{ teste }}" placeholder="Ex.: Parcelamento PGFN Transação - Previdenciário">
+    <button class="btn" type="submit">Testar</button>
+  </div>
+  <div class="out">
+    {% if not teste %}Cole um nome para ver como ele aparece no calendário.
+    {% elif erro_teste %}<span class="bad">{{ erro_teste }}</span>
+    {% elif not regra_teste %}Nenhuma regra pega este nome. Na importação ele apareceria como nome novo.
+    {% elif regra_teste.acao == 'ignorar' %}Não aparece no calendário (ignorado).
+    {% else %}Aparece como <b>{{ regra_teste.nome_curto }}</b> · {% if regra_teste.tipo == 'prefixo' %}regra “tudo que começa com {{ regra_teste.padrao }}”{% elif regra_teste.tipo == 'contem' %}regra “contém {{ regra_teste.padrao }}”{% else %}nome exato{% endif %}
+    {% endif %}
+  </div>
+</form>
+
+{% if editar or nova %}
+  {% set e = editar %}
+  <form class="editor" method="post" action="{{ url_for('nomes.salvar') }}">
+    <h2>{{ 'Editar regra' if e else 'Nova regra' }}</h2>
+    {% if e %}<input type="hidden" name="id" value="{{ e.id }}">{% endif %}
+    <div class="fields">
+      <label>Nome no sistema
+        <input name="padrao" value="{{ e.padrao if e else '' }}" required placeholder="Ex.: DEFIS - Declaração">
+      </label>
+      <label>Tipo
+        <select name="tipo">
+          <option value="exata" {% if not e or e.tipo == 'exata' %}selected{% endif %}>Nome exato</option>
+          <option value="prefixo" {% if e and e.tipo == 'prefixo' %}selected{% endif %}>Tudo que começa com…</option>
+          <option value="contem" {% if e and e.tipo == 'contem' %}selected{% endif %}>Tudo que contém… (use com cuidado)</option>
+        </select>
+      </label>
+      <label>No calendário
+        <input name="nome" value="{{ e.nome_curto if e else '' }}" placeholder="Ex.: DEFIS">
+      </label>
+      <label class="check"><input type="checkbox" name="acao" value="ignorar" {% if e and e.acao == 'ignorar' %}checked{% endif %} data-acao-ignorar> Não mostrar no calendário</label>
+    </div>
+    <input type="hidden" name="acao" value="renomear" data-acao-padrao>
+    {% if e and usos_editar %}
+      <label class="check"><input type="checkbox" name="aplicar_existentes" value="1"> Atualizar também as {{ usos_editar }} tarefa(s) já importadas que usam esta regra</label>
+    {% endif %}
+    <div class="row">
+      <button class="btn primary" type="submit">Salvar</button>
+      <a class="btn ghost" href="{{ url_for('nomes.lista') }}">Cancelar</a>
+    </div>
+  </form>
+{% endif %}
+
+<div class="rules-top">
+  <form method="get" action="{{ url_for('nomes.lista') }}" class="busca">
+    <input name="q" value="{{ q }}" placeholder="Buscar nome" aria-label="Buscar nome">
+    <input type="hidden" name="f" value="{{ f }}">
+  </form>
+  <div class="filters" role="group" aria-label="Filtro">
+    {% for k, l in filtros %}<a href="{{ url_for('nomes.lista', f=k, q=q) }}" {% if f == k %}aria-pressed="true"{% endif %}>{{ l }}</a>{% endfor %}
+  </div>
+  <a class="btn primary" href="{{ url_for('nomes.lista', nova=1) }}">Nova regra</a>
+</div>
+
+<div class="tbl-wrap"><table class="rt">
+  <thead><tr><th>Nome no sistema</th><th>No calendário</th><th>Tipo</th><th class="num">Usos</th><th>Último uso</th><th></th></tr></thead>
+  <tbody>
+  {% for r in regras %}
+    {% set u = uso.get(r.id) %}
+    <tr class="{% if not r.ativa %}off{% endif %}">
+      <td>{{ r.padrao }}{% if r.tipo == 'prefixo' %}…{% endif %}</td>
+      <td class="cn">{{ '—' if r.acao == 'ignorar' else r.nome_curto }}</td>
+      <td>{% if r.acao == 'ignorar' %}<span class="kind ign">Ignorar</span>{% endif %}
+          {% if r.tipo == 'prefixo' %}<span class="kind pre">Começa com</span>{% elif r.tipo == 'contem' %}<span class="kind pre">Contém</span>{% elif r.acao != 'ignorar' %}<span class="kind">Exato</span>{% endif %}</td>
+      <td class="num">{{ u.usos if u else 0 }}</td>
+      <td class="num left">{{ u.ultimo|dmy if u and u.ultimo else '—' }}</td>
+      <td class="acts">
+        <a class="mini" href="{{ url_for('nomes.lista', editar=r.id, q=q, f=f) }}">Editar</a>
+        <form method="post" action="{{ url_for('nomes.alternar', regra_id=r.id) }}">
+          <input type="hidden" name="voltar" value="{{ url_for('nomes.lista', q=q, f=f) }}">
+          <button class="mini" type="submit">{{ 'Desativar' if r.ativa else 'Reativar' }}</button>
+        </form>
+      </td>
+    </tr>
+  {% else %}
+    <tr><td colspan="6" class="muted">Nenhum nome encontrado.</td></tr>
+  {% endfor %}
+  </tbody>
+</table></div>
+
+<div class="io">
+  <p class="note">{{ total }} regras. Desativar mantém o histórico.</p>
+  <span class="spacer"></span>
+  <a class="btn ghost" href="{{ url_for('nomes.exportar') }}">Exportar regras (.json)</a>
+  <form method="post" action="{{ url_for('nomes.importar') }}" enctype="multipart/form-data" class="row">
+    <input type="file" name="arquivo" accept=".json,application/json" aria-label="Arquivo de regras">
+    <button class="btn" type="submit">Importar regras</button>
+  </form>
+</div>
+{% endblock %}

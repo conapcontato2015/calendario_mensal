@@ -1,0 +1,6 @@
+{% set ep = request.endpoint or '' %}
+<nav class="subnav" aria-label="Configurações">
+  <a href="{{ url_for('nomes.lista') }}" {% if ep.startswith('nomes.') %}aria-current="page"{% endif %}>Nomes</a>
+  <a href="{{ url_for('config.backups') }}" {% if ep in ('config.backups',) %}aria-current="page"{% endif %}>Backups</a>
+  <a href="{{ url_for('config.historico') }}" {% if ep == 'config.historico' %}aria-current="page"{% endif %}>Histórico de alterações</a>
+</nav>

@@ -1,0 +1,53 @@
+Provisão PIS/COFINS Mês	06/10/2026
+NOVA NOTIFICAÇÃO TEF	06/10/2026
+FECHAMENTO ISSQN	07/10/2026
+Solicitação Arquivos/Extratos Bancários	07/10/2026
+ISS - Serviços Prestados	07/10/2026
+ISS Retido - Serviços Tomados	07/10/2026
+RELATÓRIO RECEBIMENTOS - CAIXA - DIA 2	08/10/2026
+RETENÇÕES INSS	13/10/2026
+Provisão PIS/COFINS Dia 10	13/10/2026
+COBRANÇA DE CONTRATOS IMOBILIÁRIOS	13/10/2026
+DIFAL NC	14/10/2026
+EFD Contribuições	15/10/2026
+Consultar Pendências Fiscais	15/10/2026
+EFD - Reinf	15/10/2026
+PARCELAMENTO ISS	15/10/2026
+DAS	15/10/2026
+Guia de Arrecadação do ICMS	15/10/2026
+Guia de ICMS Substituição Tributária	15/10/2026
+DARF UNIFICADO	16/10/2026
+DARF FUNRURAL	16/10/2026
+FECOP	16/10/2026
+DARF CSRF	16/10/2026
+DARF PIS/COFINS Não Comulativo	19/10/2026
+DARF PIS/COFINS Cumulativo	19/10/2026
+DARF IPI	20/10/2026
+EFD ICMS IPI	20/10/2026
+Provisão PIS/COFINS Dia 20	21/10/2026
+Regularização NFe não Registradas no SITRAM	22/10/2026
+DARF IRPJ E CSLL MENSAL	22/10/2026
+RELATÓRIO - DIVISÃO DE DAS	22/10/2026
+SIGET	23/10/2026
+DARF QUOTAS IRPJ/CSLL	23/10/2026
+Salvar Arquivo ONVIO FISCAL	26/10/2026
+Lançamento e Importação de Documentos Fiscais	26/10/2026
+RELATÓRIO - DIVISÃO DE PIS/COFINS	26/10/2026
+Guia IRPJ e CSLL Lucro Real	28/10/2026
+Parcelamento Estadual - ICMS	28/10/2026
+Parcelamento PGFN Transação - DEMAIS DÉBITOS - Redução 50% em 12 meses	28/10/2026
+Parcelamento PGFN Transação - DEMAIS DÉBITOS - Redução 30% até 60 Meses	28/10/2026
+Parcelamento PGFN Transação - SIMPLES NACIONAL - ME e EPP até 145 Prestações c/ Redução até 70%	28/10/2026
+Guia IRPJ e CSLL Lucro Presumido	28/10/2026
+Parcelamento PGFN Transação- DEMAIS DEBITOS - Transação Extraordinária Simples Nacional	28/10/2026
+Parcelamento PGFN Transação - PREVIDENCIARIO s/Redução	28/10/2026
+Parcelamento Simplificado - RFB - 3	28/10/2026
+Parcelamento Simplificado - RFB - 4	28/10/2026
+Parcelamento Simplificado - RFB - 2	29/10/2026
+Lançamento de tomador	30/10/2026
+MIT / DCTF	30/10/2026
+Parcelamento PGFN - NÃO PREVIDENCIARIO sem garantia	30/10/2026
+Parcelamento PGFN Transação - DEMAIS DÉBITOS - ME e EPP até 60 Prestações s/ Redução	30/10/2026
+Parcelamento RFB - SIMPLES NACIONAL	30/10/2026
+Parcelamento Simplificado - RFB	30/10/2026
+Emissão de NFS-e	30/10/2026

@@ -1,0 +1,121 @@
+{% set r = p.resultado %}
+{% set lidas = p.leitura.linhas|length + p.leitura.erros|length %}
+{% if lidas %}
+  {% if p.mes_ref %}
+    <div class="detected">Mês detectado: <b>{{ nome_mes }}</b>
+      {% if p.leitura.fora_do_mes %}<span class="chip warn"><b>{{ p.leitura.fora_do_mes|length }}</b> com data fora deste mês</span>{% endif %}
+    </div>
+  {% endif %}
+  <div class="summary">
+    <span class="chip"><b>{{ lidas }}</b> linhas lidas</span>
+    <span class="chip ok"><b>{{ r.contar('ok') }}</b> no calendário</span>
+    <span class="chip"><b>{{ r.contar('agrupada') }}</b> agrupadas</span>
+    <span class="chip"><b>{{ r.contar('ignorada') }}</b> ignoradas</span>
+    <span class="chip {% if r.pendentes %}warn{% endif %}"><b>{{ r.novos|length }}</b> nomes novos</span>
+    <span class="chip {% if p.leitura.erros %}bad{% endif %}"><b>{{ p.leitura.erros|length }}</b> com erro</span>
+  </div>
+
+  {% if p.leitura.erros %}
+    <div class="box bad">
+      <h3>{{ '1 linha não foi lida e fica de fora' if p.leitura.erros|length == 1 else p.leitura.erros|length ~ ' linhas não foram lidas e ficam de fora' }}</h3>
+      {% for e in p.leitura.erros %}<div class="erro-linha"><code>{{ e.texto }}</code> · linha {{ e.numero }}: {{ e.motivo }}</div>{% endfor %}
+    </div>
+  {% endif %}
+
+  {% if r.conflitos %}
+    <div class="box bad">
+      <h3>Regras em conflito</h3>
+      {% for c in r.conflitos %}<div>{{ c.erro }}</div>{% endfor %}
+      <p><a href="{{ url_for('nomes.lista') }}">Ajustar em Configurações › Nomes</a></p>
+    </div>
+  {% endif %}
+
+  {% if r.novos %}
+    <div class="box warn">
+      <h3>{{ '1 nome novo' if r.novos|length == 1 else r.novos|length ~ ' nomes novos' }}: defina como aparece no calendário</h3>
+      <datalist id="nomes-existentes">{% for n in nomes %}<option value="{{ n }}">{% endfor %}</datalist>
+      {% for n in r.novos %}
+        {% set i = loop.index0 %}
+        <div class="pend" id="pend-{{ i }}">
+          <input type="hidden" name="dec-{{ i }}-chave" value="{{ n.chave }}">
+          <div class="orig">{{ n.original }}
+            <small>{{ n.primeira_data|dm }}{% if n.ocorrencias > 1 %} e mais {{ n.ocorrencias - 1 }}{% endif %}</small>
+          </div>
+          <div class="ctl">
+            {% if n.coberto_por %}
+              <span class="sug">Coberto por “tudo que começa com <b>{{ n.coberto_por }}</b>”.</span>
+              <input type="hidden" name="dec-{{ i }}-nome" value="{{ n.decisao.nome }}">
+            {% else %}
+              <input type="text" id="dec-{{ i }}-nome" name="dec-{{ i }}-nome" value="{{ n.decisao.nome if n.decisao.acao != 'ignorar' else '' }}"
+                     list="nomes-existentes" placeholder="Nome no calendário" autocomplete="off"
+                     {% if n.decisao.acao == 'ignorar' %}disabled{% endif %}
+                     aria-label="Nome no calendário para {{ n.original }}">
+              {% if n.sugestao and n.decisao.acao != 'ignorar' %}
+                {% if n.decisao.nome|upper == n.sugestao %}
+                  <span class="sug">Sugestão: parecido com um nome que já existe.</span>
+                {% else %}
+                  <span class="sug">Parece com <button type="button" data-sugerir="dec-{{ i }}-nome" data-valor="{{ n.sugestao }}">{{ n.sugestao }}</button></span>
+                {% endif %}
+              {% endif %}
+              <label><input type="checkbox" id="dec-{{ i }}-ignorar" name="dec-{{ i }}-ignorar" value="1" {% if n.decisao.acao == 'ignorar' %}checked{% endif %}> Não mostrar no calendário</label>
+            {% endif %}
+            <details {% if n.decisao.prefixo %}open{% endif %}>
+              <summary>Aplicar também a nomes parecidos…</summary>
+              <label><input type="checkbox" id="dec-{{ i }}-prefixo" name="dec-{{ i }}-prefixo" value="1" {% if n.decisao.prefixo %}checked{% endif %}>
+                Tudo que começa com</label>
+              <input type="text" id="dec-{{ i }}-prefixo-txt" name="dec-{{ i }}-prefixo-txt" value="{{ n.decisao.prefixo_txt or n.padrao_prefixo }}"
+                     class="prefixo" aria-label="Começo do nome">
+            </details>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  {% if p.existentes %}
+    <div class="box warn">
+      <h3>{{ nome_mes.split()[0] }} já tem {{ p.existentes }} tarefas no calendário</h3>
+      <label class="check"><input type="checkbox" id="substituir" name="substituir" value="1" {% if substituir %}checked{% endif %}>
+        Substituir as tarefas atuais por esta lista. Um backup é feito antes{% if p.ajustes_manuais %}; os {{ p.ajustes_manuais }} ajustes feitos à mão neste mês serão descartados{% endif %}.</label>
+    </div>
+  {% endif %}
+
+  {% if p.leitura.linhas %}
+    <div class="result">
+      <div class="result-h"><h3>Como vai ficar</h3><span class="spacer"></span>
+        <label class="toggle"><input type="checkbox" id="ver" name="ver" value="1" {% if ver_originais %}checked{% endif %}> Ver linhas originais</label>
+      </div>
+      {% if ver_originais %}
+        <div class="otable-wrap"><table class="ot">
+          <thead><tr><th>Data</th><th>Nome no sistema</th><th>No calendário</th></tr></thead>
+          <tbody>
+          {% for l in r.linhas %}
+            <tr class="{% if l.status in ('agrupada', 'ignorada') %}dim{% endif %}">
+              <td class="d">{{ l.linha.data|dm }}</td><td class="n">{{ l.linha.original }}</td>
+              <td>{% if l.status == 'ok' %}{{ l.nome }}{% if l.nova %} <span class="why">· nome novo</span>{% endif %}
+                {% elif l.status == 'agrupada' %}<span class="why">agrupada em {{ l.nome }}</span>
+                {% elif l.status == 'ignorada' %}<span class="why">não aparece</span>
+                {% elif l.status == 'conflito' %}<span class="why bad">conflito de regras</span>
+                {% else %}<span class="why warn">aguardando nome</span>{% endif %}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table></div>
+      {% else %}
+        {% for d, itens in r.por_dia().items() %}
+          <div class="rday"><span class="rd">{{ d|dm }} {{ DIAS_CURTOS[d.weekday()] }}</span>
+            <span class="rt">{% for l in itens %}<span class="task{% if l.nova %} new{% endif %}">{{ l.nome }}{% if l.originais|length > 1 %}<span class="grp">ⓘ{{ l.originais|length }}</span>{% endif %}</span>{% endfor %}</span>
+          </div>
+        {% else %}
+          <div class="rday"><span></span><span class="muted">Nada para mostrar ainda.</span></div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  {% endif %}
+{% endif %}
+
+<div class="confirmbar">
+  <span class="reason {% if not p.bloqueio %}okc{% endif %}">{{ p.bloqueio or ('Pronto: ' ~ r.contar('ok') ~ ' tarefas em ' ~ nome_mes|lower ~ '.') }}</span>
+  <a class="btn" href="{{ url_for('calendario.mes') }}">Cancelar</a>
+  <button class="btn primary" type="submit" {% if p.bloqueio %}disabled{% endif %}>Confirmar importação</button>
+</div>
