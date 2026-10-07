@@ -233,21 +233,65 @@ table.rt tr.confirm-row td { background: var(--bg); }
 .toast .x { font-size: 16px; opacity: .7; }
 @media (prefers-reduced-motion: no-preference) { .toast { animation: subir .18s ease-out; } @keyframes subir { from { transform: translateY(8px); opacity: 0; } } }
 
-/* impressão: A4 paisagem, mês inteiro numa página */
-@page { size: A4 landscape; margin: 8mm; }
+/* impressão: A4 paisagem, a grade ocupa a folha inteira (altura útil 210 − 2×7 mm) */
+@page { size: 297mm 210mm; margin: 7mm; }
 @media print {
-  :root { --bg: #fff; --surface: #fff; --surface-2: #fff; --line: #999; --fg: #000; --muted: #333; color-scheme: light; }
-  body { font-size: 10px; }
-  .top, .calbar, .panel, .scrim, .toasts, .mlist { display: none !important; }
-  .wrap { max-width: none; padding: 0; }
-  .sheet-title { display: block; font: 700 18px var(--f-display); text-transform: uppercase; margin: 0 0 6px; }
-  .grid-scroll { display: block !important; overflow: visible; }
-  .grid { min-width: 0; border-color: #999; background: #999; }
-  .day, .dow { background: #fff !important; box-shadow: none !important; color: #000; }
-  .day { min-height: 0; padding: 3px 4px 4px; gap: 1px; break-inside: avoid; }
-  .day.out { background: #f2f2f2 !important; }
-  .task { background: none; padding: 0; font-size: 9px; color: #000; }
-  .day.cheio .task { font-size: 8px; }
-  .dcount, .grp, .tip { display: none !important; }
-  .hol { background: none; color: #444; padding: 0; font-size: 8px; }
+  :root {
+    --p-azul-0: #f2f8fd;   /* fundo do dia com tarefa */
+    --p-azul-1: #e1eef9;   /* etiqueta da tarefa */
+    --p-azul-2: #a9cbe8;   /* linhas da grade */
+    --p-azul-3: #3b78a8;   /* número do dia, borda da etiqueta, cabeçalho */
+    --p-azul-4: #1f4466;   /* texto principal */
+    --p-lar-1: #fdecdc;    /* fundo de feriado */
+    --p-lar-2: #f6b47c;    /* faixa do título */
+    --p-lar-3: #c8661c;    /* ano, feriado, agrupadas */
+    --p-cinza-0: #f6f7f9;  /* fim de semana */
+    --p-cinza-1: #eceff2;  /* dia de outro mês */
+    --p-cinza-2: #9aa5b1;
+    color-scheme: light;
+  }
+  /* imprime os fundos coloridos sem precisar marcar "gráficos de plano de fundo" */
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  html, body { background: #fff !important; }
+  body { font-size: 10px; color: var(--p-azul-4); }
+  .top, .calbar, .panel, .scrim, .toasts, .mlist, .tip, .dcount { display: none !important; }
+  .wrap { max-width: none !important; padding: 0 !important; margin: 0 !important; }
+
+  .sheet { height: 196mm; display: flex; flex-direction: column; gap: 3mm; }
+
+  .sheet-title { display: flex !important; align-items: flex-end; gap: 4mm; margin: 0;
+    padding-bottom: 2mm; border-bottom: 1.2mm solid var(--p-lar-2); }
+  .sheet-title .mes { font: 700 26pt/1 var(--f-display); text-transform: uppercase; letter-spacing: .02em; color: var(--p-azul-4); }
+  .sheet-title .ano { font: 700 26pt/1 var(--f-display); color: var(--p-lar-3); }
+  .sheet-title .info { margin-left: auto; display: flex; gap: 4mm; align-items: center; font: 8pt var(--f-body); color: var(--p-azul-4); }
+  .sheet-title .leg { display: inline-flex; align-items: center; gap: 1.5mm; }
+  .sheet-title .leg i { width: 3.5mm; height: 3.5mm; border-radius: .6mm; display: inline-block; border: .2mm solid var(--p-azul-2); }
+  .sheet-title .leg .l-fer { background: var(--p-lar-1); border-color: var(--p-lar-2); }
+  .sheet-title .leg .l-fds { background: var(--p-cinza-0); }
+  .sheet-title .total { font: 700 8pt var(--f-mono); background: var(--p-azul-1); color: var(--p-azul-4); padding: 1mm 2.5mm; border-radius: 3mm; }
+
+  /* as semanas dividem toda a altura que sobra */
+  .grid-scroll { display: block !important; overflow: visible; flex: 1; min-height: 0; }
+  .grid { height: 100%; min-width: 0 !important; grid-template-rows: auto; grid-auto-rows: 1fr;
+    background: var(--p-azul-2) !important; border: .3mm solid var(--p-azul-2) !important; border-radius: 1.5mm; gap: .3mm !important; overflow: hidden; }
+  .dow { background: var(--p-azul-3) !important; color: #fff !important; font: 700 8.5pt var(--f-display); letter-spacing: .1em; padding: 1.4mm 2mm; }
+  .grid.dom .dow:first-child, .grid.dom .dow:nth-child(7), .grid.seg .dow:nth-child(6), .grid.seg .dow:nth-child(7) { background: #6d97ba !important; }
+
+  .day { background: #fff !important; box-shadow: none !important; min-height: 0 !important; padding: 1.3mm 1.6mm; gap: .7mm; overflow: hidden; color: var(--p-azul-4); }
+  .day.wkend { background: var(--p-cinza-0) !important; }
+  .day.out { background: var(--p-cinza-1) !important; }
+  .day.out .dnum { color: var(--p-cinza-2) !important; }
+  .day.tem { background: var(--p-azul-0) !important; }
+  .day.feriado { background: var(--p-lar-1) !important; }
+  .dhead { gap: 1.5mm; }
+  .dnum { font: 700 10pt var(--f-mono) !important; color: var(--p-azul-3) !important; }
+  .day.feriado .dnum { color: var(--p-lar-3) !important; }
+  .hol { background: none !important; color: var(--p-lar-3) !important; padding: 0 !important; font: 600 7pt var(--f-body) !important; }
+
+  .task { display: block; background: var(--p-azul-1) !important; color: var(--p-azul-4) !important;
+    border-left: .8mm solid var(--p-azul-3); border-radius: .5mm; padding: .5mm 1.2mm !important;
+    font: 600 7.6pt/1.15 var(--f-display) !important; letter-spacing: .01em; }
+  .task .grp { display: inline !important; color: var(--p-lar-3) !important; font: 700 6.5pt var(--f-mono) !important; margin-left: 1mm; }
+  .day.cheio { gap: .4mm; }
+  .day.cheio .task { font-size: 6.8pt !important; padding: .3mm 1mm !important; }
 }

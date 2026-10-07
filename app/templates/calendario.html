@@ -31,7 +31,14 @@
   </div>
 {% else %}
 <div class="sheet">
-  <div class="sheet-title">{{ MESES[mes_num-1] }} {{ ano }}</div>
+  <div class="sheet-title">
+    <span class="mes">{{ MESES[mes_num-1] }}</span><span class="ano">{{ ano }}</span>
+    <span class="info">
+      <span class="leg"><i class="l-fer"></i>Feriado</span>
+      <span class="leg"><i class="l-fds"></i>Fim de semana</span>
+      <span class="total">{{ total }} tarefas no mês</span>
+    </span>
+  </div>
   <div class="grid-scroll">
     <div class="grid {{ 'seg' if semana_comeca == 'segunda' else 'dom' }}">
       {% for c in cabecalho %}<div class="dow">{{ c }}</div>{% endfor %}
@@ -39,7 +46,7 @@
         {% if d.fora %}
           <div class="day out"><div class="dhead"><span class="dnum">{{ d.data.day }}</span></div></div>
         {% else %}
-          <a class="day{% if d.fim_semana %} wkend{% endif %}{% if d.data == hoje %} today{% endif %}{% if painel and painel.data == d.data %} sel{% endif %}{% if d.tarefas|length > 6 %} cheio{% endif %}"
+          <a class="day{% if d.fim_semana %} wkend{% endif %}{% if d.data == hoje %} today{% endif %}{% if painel and painel.data == d.data %} sel{% endif %}{% if d.tarefas %} tem{% endif %}{% if d.feriado %} feriado{% endif %}{% if d.tarefas|length > 5 %} cheio{% endif %}"
              href="{{ url_for('calendario.mes', mes=mk, dia=d.data.isoformat()) }}"
              aria-label="{{ d.data.day }} de {{ MESES[mes_num-1]|lower }}, {{ d.tarefas|length }} tarefas">
             <div class="dhead"><span class="dnum">{{ d.data.day }}</span>{% if d.tarefas %}<span class="dcount{% if d.tarefas|length > 5 %} hi{% endif %}">{{ d.tarefas|length }}</span>{% endif %}</div>

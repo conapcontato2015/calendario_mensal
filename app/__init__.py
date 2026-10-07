@@ -11,7 +11,7 @@ from .db import conectar, fechar_db, migrar
 from .servicos import garantir_seed
 from .textutil import DIAS_CURTOS, MESES
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 
 def _segredo(cfg: cfgmod.Config) -> str:

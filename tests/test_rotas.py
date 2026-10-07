@@ -183,6 +183,16 @@ def test_backup_manual_e_restaurar(client, cfg, texto_outubro):
     assert "backup restaurado" in html
 
 
+def test_marcacao_da_impressao(client, texto_outubro):
+    _importar(client, texto_outubro)
+    html = client.get("/?mes=2026-10").get_data(as_text=True)
+    assert '<span class="mes">OUTUBRO</span><span class="ano">2026</span>' in html
+    assert '<span class="total">42 tarefas no mês</span>' in html
+    # 12/10 feriado; 15/10 tem 7 tarefas → "cheio"
+    assert re.search(r'class="day[^"]*\bferiado\b[^"]*"\s+href="[^"]*dia=2026-10-12', html)
+    assert re.search(r'class="day[^"]*\btem\b[^"]*\bcheio\b[^"]*"\s+href="[^"]*dia=2026-10-15', html)
+
+
 def test_semana_comecando_na_segunda(cfg, texto_outubro):
     from app import create_app
     cfg.semana_comeca = "segunda"
